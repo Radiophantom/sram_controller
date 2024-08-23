@@ -1,2 +1,4 @@
 ../rtl/sram_timings_pkg.sv
+
+../rtl/avalon_mm_if.sv
 ../rtl/sram_controller.sv

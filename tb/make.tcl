@@ -11,7 +11,7 @@ proc compile_rtl {} {
 
 proc compile_tb {} {
   vlib work
-  vlog -work work -sv -f tb_files
+  vlog -work work -sv +incdir+classes -f tb_files
 }
 
 proc simulate {} {

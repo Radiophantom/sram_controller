@@ -2,15 +2,6 @@
 
 module top_tb;
 
-//------------------------------------------------------------------------------
-logic [17:0]  amm_address;
-logic         amm_read;
-logic         amm_write;
-logic [15:0]  amm_writedata;
-logic         amm_readdatavalid;
-logic [15:0]  amm_readdata;
-logic         amm_waitrequest;
-//------------------------------------------------------------------------------
 logic [17:0]  sram_address;
 logic [15:0]  sram_data;
 logic         sram_ce1_n;
@@ -46,87 +37,28 @@ begin
   rst <= 0;
 end
 
-//------------------------------------------------------------------------------
-// Tasks
-//------------------------------------------------------------------------------
-
-int DBG_LVL = 0;
-
-task automatic avalon_mm_read(
-  input   bit [17:0]  addr,
-  output  bit [15:0]  data
-);
-  amm_address <= addr;
-  amm_read    <= 1;
-  do
-    @(posedge clk);
-  while(amm_waitrequest);
-  amm_read <= 0;
-  while(!amm_readdatavalid)
-    @(posedge clk);
-  data = amm_readdata;
-  if(DBG_LVL > 0)
-    $display("[read] addr - %0d. data - %h",addr,data);
-endtask
-        
-task automatic avalon_mm_write(
-  input   bit [17:0]  addr,
-          bit [15:0]  data
-);
-  amm_address   <= addr;
-  amm_writedata <= data;
-  amm_write     <= 1;
-  do
-    @(posedge clk);
-  while(amm_waitrequest);
-  amm_write     <= 0;
-  if(DBG_LVL > 0)
-    $display("[write] addr - %0d. data - %h",addr,data);
-endtask
-
-//task automatic read(
-//  input   bit [17:0]  addr,
-//          int         words,
-//  output  bit [15:0]  data [$]
-//);
-//  repeat(words)
-//  begin
-//    bit [15:0] dword;
-//    read_word(addr++,dword);
-//    data.push_back(dword);
-//  end
-//endtask
-//
-//task automatic write(
-//  input   bit [17:0]  addr,
-//          bit [15:0]  data [$]
-//);
-//  repeat(data.size())
-//    write_word(addr++,data.pop_front());
-//endtask
+avalon_mm_if #(18,16) mem_if (clk);
 
 //------------------------------------------------------------------------------
 // Test
 //------------------------------------------------------------------------------
 
+import tb_pkg::*;
+
+environment #(18,16) env;
+
 initial
 begin
 
-  DBG_LVL = 1;
+  env = new(mem_if);
 
   @(negedge rst);
 
-  #10000;
-  //begin
-  //  bit [15:0] wr_data [$];
-  //  repeat(16)
-  //    wr_data.push_back($urandom_range(2**16-1,0));
-  //  write(0,wr_data);
-  //end
-  //begin
-  //  bit [15:0] rd_data [$];
-  //  read(0,16,rd_data);
-  //end
+  env.build();
+  env.gen.transaction_amount = 100;
+  //env.drv.DBG_LEVEL = 1;
+  env.run();
+  env.wrap_up();
 
   $display("Simulation finished!");
   $stop();
@@ -144,13 +76,7 @@ sram_controller #(
   .rst_i              ( rst               ),
   .clk_i              ( clk               ),
 
-  .amm_address_i      ( amm_address       ),
-  .amm_read_i         ( amm_read          ),
-  .amm_write_i        ( amm_write         ),
-  .amm_writedata_i    ( amm_writedata     ),
-  .amm_readdatavalid_o( amm_readdatavalid ),
-  .amm_readdata_o     ( amm_readdata      ),
-  .amm_waitrequest_o  ( amm_waitrequest   ),
+  .mem_if             ( mem_if            ),
 
   .wen_o              ( sram_wen          ),
   .oen_o              ( sram_oen          ),

@@ -1,13 +1,23 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /top_tb/DUT/CE1_b
-add wave -noupdate /top_tb/DUT/CE2
-add wave -noupdate /top_tb/DUT/WE_b
-add wave -noupdate /top_tb/DUT/OE_b
-add wave -noupdate /top_tb/DUT/BHE_b
-add wave -noupdate /top_tb/DUT/BLE_b
-add wave -noupdate /top_tb/DUT/A
-add wave -noupdate /top_tb/DUT/DQ
+add wave -noupdate -divider {Avalon-MM interface}
+add wave -noupdate /top_tb/mem_if/address
+add wave -noupdate /top_tb/mem_if/byteenable
+add wave -noupdate /top_tb/mem_if/write
+add wave -noupdate /top_tb/mem_if/writedata
+add wave -noupdate /top_tb/mem_if/read
+add wave -noupdate /top_tb/mem_if/readdatavalid
+add wave -noupdate /top_tb/mem_if/readdata
+add wave -noupdate /top_tb/mem_if/waitrequest
+add wave -noupdate -divider {SRAM interface}
+add wave -noupdate /top_tb/sram_model/CE1_b
+add wave -noupdate /top_tb/sram_model/CE2
+add wave -noupdate /top_tb/sram_model/A
+add wave -noupdate /top_tb/sram_model/OE_b
+add wave -noupdate /top_tb/sram_model/WE_b
+add wave -noupdate /top_tb/sram_model/BHE_b
+add wave -noupdate /top_tb/sram_model/BLE_b
+add wave -noupdate /top_tb/sram_model/DQ
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {3528 ns} 0}
 quietly wave cursor active 1

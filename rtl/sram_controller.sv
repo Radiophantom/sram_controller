@@ -8,13 +8,7 @@ module sram_controller #(
   input                 clk_i,
 
   // Avalon-MM interface
-  input   [ADDR_W-1:0]  amm_address_i,
-  input                 amm_read_i,
-  input                 amm_write_i,
-  input   [DATA_W-1:0]  amm_writedata_i,
-  output                amm_readdatavalid_o,
-  output  [DATA_W-1:0]  amm_readdata_o,
-  output                amm_waitrequest_o,
+  avalon_mm_if          mem_if,
 
   // SRAM interface
   output                wen_o,
@@ -28,14 +22,33 @@ module sram_controller #(
 
 import sram_timings_pkg::*;
 
+logic wen;
+logic oen;
+logic data_en;
+
 //synthesis translate_off
 initial
 begin
-  wen_o     = 1'b1;
-  oen_o     = 1'b1;
-  data_en_o = 1'b0;
+  wen     = 1'b1;
+  oen     = 1'b1;
+  data_en = 1'b0;
 end
 //synthesis translate_on
+
+assign wen_o = wen;
+assign oen_o = oen;
+assign data_en_o = data_en;
+
+logic readdatavalid;
+
+always_ff @(posedge clk_i,posedge rst_i)
+  if(rst_i)
+    readdatavalid <= 1'b0;
+  else
+    readdatavalid <= mem_if.read;
+
+assign mem_if.readdata    = '1;
+assign mem_if.waitrequest = 1'b0;
 
 endmodule
 
@@ -49,13 +62,7 @@ sram_controller #(
   .rst_i              ( ),
   .clk_i              ( ),
 
-  .amm_address_i      ( ),
-  .amm_read_i         ( ),
-  .amm_write_i        ( ),
-  .amm_writedata_i    ( ),
-  .amm_readdatavalid_o( ),
-  .amm_readdata_o     ( ),
-  .amm_waitrequest_o  ( ),
+  .mem_if             ( ),
 
   .wen_o              ( ),
   .oen_o              ( ),
