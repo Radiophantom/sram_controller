@@ -1,1 +1,5 @@
-
+work/
+sram_model_lib/
+*.wlf
+transcript
+tags

@@ -2,25 +2,40 @@
 
 module top_tb;
 
-mobl_256Kx16 #(
-  .ADDR_BITS    ( 18      ),
-  .DATA_BITS    ( 16      ),
-  .depth        ( 262144  ),
+wire  [17:0]  sram_address;
+wire  [15:0]  sram_data;
+wire          sram_ce1_n;
+wire          sram_ce2;
+wire          sram_wen;
+wire          sram_oen;
+wire          sram_bhen;
+wire          sram_blen;
 
-  .TimingInfo   ( 1       ),
-  .TimingChecks ( 1       )
-) DUT (
-//mobl_256Kx16 DUT (
-  .CE1_b ( 1'b0 ),
-  .CE2   ( 1'b1 ),
+//------------------------------------------------------------------------------
+// Start-up reset and clock generation
+//------------------------------------------------------------------------------
 
-  .WE_b  ( 1'b1 ),
-  .OE_b  ( 1'b0 ),
-  .BHE_b ( 1'b0 ),
-  .BLE_b ( 1'b0 ),
-  .A     ( '1   ),
-  .DQ    (      )
-);
+parameter int CLK_T = 10;
+
+bit clk;
+bit rst;
+
+initial
+begin
+  rst <= 1;
+  #(10*CLK_T);
+  fork
+    forever
+      #(CLK_T/2) clk = !clk;
+  join_none
+  repeat(10)
+    @(posedge clk);
+  rst <= 0;
+end
+
+//------------------------------------------------------------------------------
+// Test
+//------------------------------------------------------------------------------
 
 initial
 begin
@@ -28,6 +43,25 @@ begin
   $display("Simulation finished!");
   $stop();
 end
+
+//------------------------------------------------------------------------------
+// SRAM instance
+//------------------------------------------------------------------------------
+
+mobl_256Kx16 #(
+  .TimingInfo   ( 1             ),
+  .TimingChecks ( 1             )
+) DUT (
+  .CE1_b        ( sram_ce1_n    ),
+  .CE2          ( sram_ce2      ),
+
+  .WE_b         ( sram_wen      ),
+  .OE_b         ( sram_oen      ),
+  .BHE_b        ( sram_bhen     ),
+  .BLE_b        ( sram_blen     ),
+  .A            ( sram_address  ),
+  .DQ           ( sram_data     )
+);
 
 endmodule
 

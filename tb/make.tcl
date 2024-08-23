@@ -1,17 +1,23 @@
 
-vlib vhdl_libs
-vcom -work vhdl_libs package_timing.vhd package_utility.vhd mobl_256Kx16.vhd
+proc compile_sram_model {} {
+  vlib sram_model_lib
+  vcom -work sram_model_lib sram_model/package_timing.vhd sram_model/package_utility.vhd sram_model/mobl_256Kx16.vhd
+}
 
-vlib verilog_libs
-vlog -work verilog_libs -L vhdl_libs top_tb.sv
+proc compile_tb {} {
+  vlib work
+  vlog -work work -sv -f tb_files
+}
 
-vlib work
-vopt -work work -L vhdl_libs -L verilog_libs +acc -o top_tb_opt top_tb
-vsim -work work top_tb_opt
+proc simulate {} {
+  vopt -work work -L sram_model_lib +acc -o top_tb_opt top_tb
+  vsim -work work top_tb_opt
+  if { ![batch_mode] && [file exists "wave.do"] } {
+    do "wave.do"
+  }
+  run -all
+}
 
-#if { ![batch_mode] && [file exists "wave.do"] } {
-#  do "wave.do"
-#}
-#
-#run -all
-
+compile_sram_model
+compile_tb
+simulate
