@@ -2,6 +2,15 @@
 
 module top_tb;
 
+//------------------------------------------------------------------------------
+logic [17:0]  amm_address;
+logic         amm_read;
+logic         amm_write;
+logic [15:0]  amm_writedata;
+logic         amm_readdatavalid;
+logic [15:0]  amm_readdata;
+logic         amm_waitrequest;
+//------------------------------------------------------------------------------
 logic [17:0]  sram_address;
 logic [15:0]  sram_data;
 logic         sram_ce1_n;
@@ -10,6 +19,9 @@ logic         sram_wen;
 logic         sram_oen;
 logic         sram_bhen;
 logic         sram_blen;
+logic         sram_data_en;
+logic [15:0]  sram_data_i;
+logic [15:0]  sram_data_o;
 wire  [15:0]  sram_data_w;
 
 //------------------------------------------------------------------------------
@@ -40,56 +52,58 @@ end
 
 int DBG_LVL = 0;
 
-task automatic read_word(
+task automatic avalon_mm_read(
   input   bit [17:0]  addr,
   output  bit [15:0]  data
 );
-  sram_address  = addr;
-  sram_oen      = 1'b0;
-  #50;
-  data          = sram_data_w;
-  sram_oen      = 1'b1;
-  #50;
+  amm_address <= addr;
+  amm_read    <= 1;
+  do
+    @(posedge clk);
+  while(amm_waitrequest);
+  amm_read <= 0;
+  while(!amm_readdatavalid)
+    @(posedge clk);
+  data = amm_readdata;
   if(DBG_LVL > 0)
     $display("[read] addr - %0d. data - %h",addr,data);
 endtask
         
-task automatic write_word(
+task automatic avalon_mm_write(
   input   bit [17:0]  addr,
           bit [15:0]  data
 );
+  amm_address   <= addr;
+  amm_writedata <= data;
+  amm_write     <= 1;
+  do
+    @(posedge clk);
+  while(amm_waitrequest);
+  amm_write     <= 0;
   if(DBG_LVL > 0)
     $display("[write] addr - %0d. data - %h",addr,data);
-  sram_address  = addr;
-  #50;
-  sram_wen      = 1'b0;
-  sram_data     = data;
-  #50;
-  sram_wen      = 1'b1;
-  #50;
-  sram_data     = 'Z;
 endtask
 
-task automatic read(
-  input   bit [17:0]  addr,
-          int         words,
-  output  bit [15:0]  data [$]
-);
-  repeat(words)
-  begin
-    bit [15:0] dword;
-    read_word(addr++,dword);
-    data.push_back(dword);
-  end
-endtask
-
-task automatic write(
-  input   bit [17:0]  addr,
-          bit [15:0]  data [$]
-);
-  repeat(data.size())
-    write_word(addr++,data.pop_front());
-endtask
+//task automatic read(
+//  input   bit [17:0]  addr,
+//          int         words,
+//  output  bit [15:0]  data [$]
+//);
+//  repeat(words)
+//  begin
+//    bit [15:0] dword;
+//    read_word(addr++,dword);
+//    data.push_back(dword);
+//  end
+//endtask
+//
+//task automatic write(
+//  input   bit [17:0]  addr,
+//          bit [15:0]  data [$]
+//);
+//  repeat(data.size())
+//    write_word(addr++,data.pop_front());
+//endtask
 
 //------------------------------------------------------------------------------
 // Test
@@ -98,56 +112,79 @@ endtask
 initial
 begin
 
-  // Init signals
-  sram_ce1_n    = 1'b0;
-  sram_ce2      = 1'b1;
-  sram_wen      = 1'b1;
-  sram_oen      = 1'b1;
-  sram_bhen     = 1'b0;
-  sram_blen     = 1'b0;
-  sram_address  = 'X;
-  sram_data     = 'Z;
+  DBG_LVL = 1;
 
   @(negedge rst);
 
-  #100;
-
-  DBG_LVL = 1;
-
-  begin
-    bit [15:0] wr_data [$];
-    repeat(16)
-      wr_data.push_back($urandom_range(2**16-1,0));
-    write(0,wr_data);
-  end
-  begin
-    bit [15:0] rd_data [$];
-    read(0,16,rd_data);
-  end
+  #10000;
+  //begin
+  //  bit [15:0] wr_data [$];
+  //  repeat(16)
+  //    wr_data.push_back($urandom_range(2**16-1,0));
+  //  write(0,wr_data);
+  //end
+  //begin
+  //  bit [15:0] rd_data [$];
+  //  read(0,16,rd_data);
+  //end
 
   $display("Simulation finished!");
   $stop();
 end
 
 //------------------------------------------------------------------------------
+// DUT instance
+//------------------------------------------------------------------------------
+
+sram_controller #(
+  .CLK_PERIOD         ( CLK_T             ),
+  .ADDR_W             ( 18                ),
+  .DATA_W             ( 16                )
+) DUT (
+  .rst_i              ( rst               ),
+  .clk_i              ( clk               ),
+
+  .amm_address_i      ( amm_address       ),
+  .amm_read_i         ( amm_read          ),
+  .amm_write_i        ( amm_write         ),
+  .amm_writedata_i    ( amm_writedata     ),
+  .amm_readdatavalid_o( amm_readdatavalid ),
+  .amm_readdata_o     ( amm_readdata      ),
+  .amm_waitrequest_o  ( amm_waitrequest   ),
+
+  .wen_o              ( sram_wen          ),
+  .oen_o              ( sram_oen          ),
+  .addr_o             ( sram_address      ),
+
+  .data_en_o          ( sram_data_en      ),
+  .data_o             ( sram_data_o       ),
+  .data_i             ( sram_data_i       )
+);
+//------------------------------------------------------------------------------
 // SRAM instance
 //------------------------------------------------------------------------------
 
-mobl_256Kx16 #(
-  .TimingInfo   ( 1             )
-) DUT (
-  .CE1_b        ( sram_ce1_n    ),
-  .CE2          ( sram_ce2      ),
+assign sram_ce1_n = 1'b0;
+assign sram_ce2   = 1'b1;
+assign sram_bhen  = 1'b0;
+assign sram_blen  = 1'b0;
 
-  .WE_b         ( sram_wen      ),
-  .OE_b         ( sram_oen      ),
-  .BHE_b        ( sram_bhen     ),
-  .BLE_b        ( sram_blen     ),
-  .A            ( sram_address  ),
-  .DQ           ( sram_data_w   )
+mobl_256Kx16 #(
+  .TimingInfo ( 1             )
+) sram_model (
+  .CE1_b      ( sram_ce1_n    ),
+  .CE2        ( sram_ce2      ),
+
+  .WE_b       ( sram_wen      ),
+  .OE_b       ( sram_oen      ),
+  .BHE_b      ( sram_bhen     ),
+  .BLE_b      ( sram_blen     ),
+  .A          ( sram_address  ),
+  .DQ         ( sram_data_w   )
 );
 
-assign sram_data_w = sram_data;
+assign sram_data_w = sram_data_en ? sram_data_o : 'Z;
+assign sram_data_i = sram_data_w;
 
 endmodule
 

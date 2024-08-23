@@ -1,0 +1,2 @@
+../rtl/sram_timings_pkg.sv
+../rtl/sram_controller.sv
