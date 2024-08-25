@@ -24,12 +24,13 @@ class environment #(
 
     gen = new(gen2drv_mbx,drv2gen_mbx);
     drv = new(gen2drv_mbx,drv2gen_mbx,vmem_if);
-
     gen.blueprint.ADDR_W = ADDR_W;
     gen.blueprint.DATA_W = DATA_W;
   endfunction
 
   task run();
+    vmem_if.read  <= 1'b0;
+    vmem_if.write <= 1'b0;
     fork
       gen.run();
       drv.run();

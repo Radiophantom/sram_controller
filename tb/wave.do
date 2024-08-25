@@ -1,5 +1,7 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
+add wave -noupdate /top_tb/rst
+add wave -noupdate /top_tb/clk
 add wave -noupdate -divider {Avalon-MM interface}
 add wave -noupdate /top_tb/mem_if/address
 add wave -noupdate /top_tb/mem_if/byteenable
@@ -19,7 +21,7 @@ add wave -noupdate /top_tb/sram_model/BHE_b
 add wave -noupdate /top_tb/sram_model/BLE_b
 add wave -noupdate /top_tb/sram_model/DQ
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {3528 ns} 0}
+WaveRestoreCursors {{Cursor 1} {205 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -35,4 +37,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {10500 ns}
+WaveRestoreZoom {177 ns} {441 ns}

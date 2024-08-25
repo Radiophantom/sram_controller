@@ -17,5 +17,16 @@ logic               readdatavalid;
 logic [DATA_W-1:0]  readdata;
 logic               waitrequest;
 
+clocking cb @(posedge clk);
+  input   readdatavalid,
+          readdata,
+          waitrequest;
+  output  address,
+          read,
+          byteenable,
+          write,
+          writedata;
+endclocking
+
 endinterface
 

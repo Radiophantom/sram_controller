@@ -22,27 +22,27 @@ class driver #(
   endfunction
 
   task read(amm_transaction tr);
-    vmem_if.address <= tr.addr;
-    vmem_if.read    <= 1;
+    vmem_if.cb.address <= tr.addr;
+    vmem_if.cb.read    <= 1;
     do
-      @(posedge vmem_if.clk);
-    while(vmem_if.waitrequest);
-    vmem_if.read <= 0;
-    while(!vmem_if.readdatavalid)
-      @(posedge vmem_if.clk);
-    tr.rddata = vmem_if.readdata;
+      @vmem_if.cb;
+    while(vmem_if.cb.waitrequest);
+    vmem_if.cb.read <= 0;
+    while(!vmem_if.cb.readdatavalid)
+      @vmem_if.cb;
+    tr.rddata = vmem_if.cb.readdata;
     if(DBG_LEVEL > 0)
       $display("[read] addr - %0d. data - %h",tr.addr,tr.rddata);
   endtask
 
   task write(amm_transaction tr);
-    vmem_if.address   <= tr.addr;
-    vmem_if.writedata <= tr.wrdata;
-    vmem_if.write     <= 1;
+    vmem_if.cb.address   <= tr.addr;
+    vmem_if.cb.writedata <= tr.wrdata;
+    vmem_if.cb.write     <= 1;
     do
-      @(posedge vmem_if.clk);
-    while(vmem_if.waitrequest);
-    vmem_if.write     <= 0;
+      @vmem_if.cb;
+    while(vmem_if.cb.waitrequest);
+    vmem_if.cb.write     <= 0;
     if(DBG_LEVEL > 0)
       $display("[write] addr - %0d. data - %h",tr.addr,tr.wrdata);
   endtask

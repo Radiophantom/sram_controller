@@ -1,5 +1,6 @@
 work/
 sram_model_lib/
+rtl_lib/
 *.wlf
 transcript
 tags
