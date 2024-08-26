@@ -14,6 +14,12 @@ class amm_transaction;
   rand bit [31:0]   wrdata;
        bit [31:0]   rddata;
 
+  rand int unsigned gap;
+
+  constraint gap_c {
+    gap <= 10;
+  }
+
   constraint size_c {
     addr    < 2**this.ADDR_W;
     wrdata  < 2**this.DATA_W;

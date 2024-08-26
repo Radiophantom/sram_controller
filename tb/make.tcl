@@ -15,10 +15,15 @@ proc compile_tb {} {
 }
 
 proc simulate {} {
-  vopt -work work -L sram_model_lib -L rtl_lib +acc -o top_tb_opt top_tb
-  vsim -work work top_tb_opt
-  if { ![batch_mode] && [file exists "wave.do"] } {
-    do "wave.do"
+  if [batch_mode] {
+    vopt -work work -L sram_model_lib -L rtl_lib -o top_tb_opt top_tb
+    vsim -work work top_tb_opt
+  } else {
+    vopt +acc -work work -L sram_model_lib -L rtl_lib -o top_tb_opt top_tb
+    vsim -classdebug -work work top_tb_opt
+    if [file exists "wave.do"] {
+      do "wave.do"
+    }
   }
   run -all
 }

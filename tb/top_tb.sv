@@ -61,7 +61,7 @@ begin
     gen_ext.blueprint.DATA_W = 16;
     env.gen = gen_ext;
   end
-  env.gen.transaction_amount = 100;
+  env.gen.transaction_amount = 10000;
   env.reset();
 
   @mem_if.cb;

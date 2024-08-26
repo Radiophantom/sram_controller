@@ -31,6 +31,8 @@ class driver #(
   endfunction
 
   task read(amm_transaction tr);
+    repeat(tr.gap)
+      @vmem_if.cb;
     vmem_if.cb.address <= tr.addr;
     vmem_if.cb.read    <= 1;
     do
@@ -47,6 +49,8 @@ class driver #(
   endtask
 
   task write(amm_transaction tr);
+    repeat(tr.gap)
+      @vmem_if.cb;
     vmem_if.cb.address   <= tr.addr;
     vmem_if.cb.writedata <= tr.wrdata;
     vmem_if.cb.write     <= 1;
