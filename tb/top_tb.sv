@@ -50,13 +50,22 @@ environment #(18,16) env;
 initial
 begin
 
-  env = new(mem_if);
-
   @(negedge rst);
 
+  env = new(mem_if);
   env.build();
+  begin
+    generator_ext gen_ext;
+    gen_ext = new(env.gen2drv_mbx,env.drv2gen_mbx);
+    gen_ext.blueprint.ADDR_W = 18;
+    gen_ext.blueprint.DATA_W = 16;
+    env.gen = gen_ext;
+  end
   env.gen.transaction_amount = 100;
-  //env.drv.DBG_LEVEL = 1;
+  env.reset();
+
+  @mem_if.cb;
+
   env.run();
   env.wrap_up();
 

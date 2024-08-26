@@ -1,10 +1,19 @@
 
+class driver_cbs;
+  virtual function void post_write(amm_transaction tr);
+  endfunction
+  virtual function void post_read(amm_transaction tr);
+  endfunction
+endclass
+
 class driver #(
   parameter int ADDR_W,
   parameter int DATA_W
 );
 
   int DBG_LEVEL = 0;
+
+  driver_cbs cbs [$];
 
   virtual avalon_mm_if #(ADDR_W,DATA_W) vmem_if;
 
@@ -31,8 +40,10 @@ class driver #(
     while(!vmem_if.cb.readdatavalid)
       @vmem_if.cb;
     tr.rddata = vmem_if.cb.readdata;
+    foreach(cbs[i])
+      cbs[i].post_read(tr);
     if(DBG_LEVEL > 0)
-      $display("[read] addr - %0d. data - %h",tr.addr,tr.rddata);
+      $display("@%t [read] addr - %0d. data - %h",$time(),tr.addr,tr.rddata);
   endtask
 
   task write(amm_transaction tr);
@@ -43,8 +54,10 @@ class driver #(
       @vmem_if.cb;
     while(vmem_if.cb.waitrequest);
     vmem_if.cb.write     <= 0;
+    foreach(cbs[i])
+      cbs[i].post_write(tr);
     if(DBG_LEVEL > 0)
-      $display("[write] addr - %0d. data - %h",tr.addr,tr.wrdata);
+      $display("@%t: [write] addr - %0d. data - %h",$time(),tr.addr,tr.wrdata);
   endtask
 
   task run();

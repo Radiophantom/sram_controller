@@ -15,6 +15,8 @@ package tb_pkg;
   `include "amm_transaction.sv"
   `include "driver.sv"
   `include "generator.sv"
+  `include "generator_ext.sv"
+  `include "scoreboard.sv"
   `include "environment.sv"
 
 endpackage

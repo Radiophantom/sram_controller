@@ -17,7 +17,7 @@ class generator;
 
   int transaction_amount = 0;
 
-  task run();
+  virtual task run();
     amm_transaction req_tr;
     repeat(transaction_amount)
     begin
