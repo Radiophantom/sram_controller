@@ -32,16 +32,16 @@ class driver #(
 
   task read(amm_transaction tr);
     repeat(tr.gap)
-      @vmem_if.cb;
-    vmem_if.cb.address <= tr.addr;
-    vmem_if.cb.read    <= 1;
+      @vmem_if.cbm;
+    vmem_if.cbm.address <= tr.addr;
+    vmem_if.cbm.read    <= 1;
     do
-      @vmem_if.cb;
-    while(vmem_if.cb.waitrequest);
-    vmem_if.cb.read <= 0;
-    while(!vmem_if.cb.readdatavalid)
-      @vmem_if.cb;
-    tr.rddata = vmem_if.cb.readdata;
+      @vmem_if.cbm;
+    while(vmem_if.cbm.waitrequest);
+    vmem_if.cbm.read <= 0;
+    while(!vmem_if.cbm.readdatavalid)
+      @vmem_if.cbm;
+    tr.rddata = vmem_if.cbm.readdata;
     foreach(cbs[i])
       cbs[i].post_read(tr);
     if(DBG_LEVEL > 0)
@@ -50,14 +50,14 @@ class driver #(
 
   task write(amm_transaction tr);
     repeat(tr.gap)
-      @vmem_if.cb;
-    vmem_if.cb.address   <= tr.addr;
-    vmem_if.cb.writedata <= tr.wrdata;
-    vmem_if.cb.write     <= 1;
+      @vmem_if.cbm;
+    vmem_if.cbm.address   <= tr.addr;
+    vmem_if.cbm.writedata <= tr.wrdata;
+    vmem_if.cbm.write     <= 1;
     do
-      @vmem_if.cb;
-    while(vmem_if.cb.waitrequest);
-    vmem_if.cb.write     <= 0;
+      @vmem_if.cbm;
+    while(vmem_if.cbm.waitrequest);
+    vmem_if.cbm.write     <= 0;
     foreach(cbs[i])
       cbs[i].post_write(tr);
     if(DBG_LEVEL > 0)
